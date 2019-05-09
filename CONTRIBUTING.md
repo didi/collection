@@ -7,13 +7,13 @@ Thanks for considering to contribute this project. All issues and pull requests 
 Before sending pull request to this project, please read and follow guidelines below.
 
 1. Branch: We only accept pull request on `develop` branch.
-2. Coding style: Follow the coding style used in VirtualAPK.
+2. Coding style: Follow the coding style used in Go.
 3. Commit message: Use English and be aware of your spell.
 4. Test: Make sure to test your code.
 
 Add device mode, API version, related log, screenshots and other related information in your pull request if possible.
 
-NOTE: We assume all your contribution can be licensed under the [Apache License 2.0](https://github.com/jianfengye/collection/LICENSE). 
+NOTE: We assume all your contribution can be licensed under the [Apache License 2.0](LICENSE). 
 
 ## Issues
 
