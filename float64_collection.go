@@ -1,35 +1,43 @@
 package collection
 
 import (
+	"encoding/json"
 	"fmt"
+
 	"github.com/pkg/errors"
-	"reflect"
 )
 
-type Float64Collection struct{
+type Float64Collection struct {
 	AbsCollection
 	objs []float64
 }
 
+func compareFloat64(i interface{}, i2 interface{}) int {
+	int1 := i.(float64)
+	int2 := i2.(float64)
+	if int1 > int2 {
+		return 1
+	}
+	if int1 < int2 {
+		return -1
+	}
+	return 0
+}
+
+// NewFloat64Collection create a new Float64Collection
 func NewFloat64Collection(objs []float64) *Float64Collection {
-	objs2 := make([]float64, len(objs))
-	reflect.Copy(reflect.ValueOf(objs2), reflect.ValueOf(objs))
 	arr := &Float64Collection{
-		objs:objs2,
+		objs: objs,
 	}
 	arr.AbsCollection.Parent = arr
-	arr.AbsCollection.compare = func(i interface{}, i2 interface{}) int {
-		int1 := i.(float64)
-		int2 := i2.(float64)
-		if int1 > int2 {
-			return 1
-		}
-		if int1 < int2 {
-			return -1
-		}
-		return 0
-	}
+	arr.AbsCollection.eleType = TYPE_FLOAT64
+	arr.SetCompare(compareFloat64)
 	return arr
+}
+
+// Copy copy collection
+func (arr *Float64Collection) Copy() ICollection {
+	return NewFloat64Collection(arr.objs)
 }
 
 func (arr *Float64Collection) Insert(index int, obj interface{}) ICollection {
@@ -40,15 +48,14 @@ func (arr *Float64Collection) Insert(index int, obj interface{}) ICollection {
 		length := len(arr.objs)
 
 		// 如果是append操作，直接调用系统的append，不新创建collection
-		if index == length {
+		if index >= length {
 			arr.objs = append(arr.objs, i)
 			return arr
 		}
 
-		new := arr.objs[0: index]
-		new = append(new, i)
-		new = append(new, arr.objs[index:length]...)
-		arr.objs = new
+		arr.objs = append(arr.objs, 0)
+		copy(arr.objs[index+1:], arr.objs[index:])
+		arr.objs[index] = i
 	} else {
 		return arr.SetErr(errors.New("Insert: type error"))
 	}
@@ -61,24 +68,30 @@ func (arr *Float64Collection) Remove(i int) ICollection {
 	}
 
 	len := arr.Count()
-	if i >= len {
+	if i < 0 || i >= len {
 		return arr.SetErr(errors.New("index exceeded"))
 	}
-	arr.objs = append(arr.objs[0:i], arr.objs[i+1: len]...)
+	arr.objs = append(arr.objs[0:i], arr.objs[i+1:len]...)
 	return arr
 }
 
 func (arr *Float64Collection) NewEmpty(err ...error) ICollection {
-	intArr := NewFloat64Collection([]float64{})
-	if len(err) != 0 {
-		intArr.err = err[0]
-	}
-	return intArr
+	return NewFloat64Collection([]float64{})
 }
 
-
 func (arr *Float64Collection) Index(i int) IMix {
-	return NewMix(arr.objs[i])
+	if i < 0 || i >= arr.Count() {
+		return NewErrorMix(errors.New("index exceeded"))
+	}
+	return NewMix(arr.objs[i]).SetCompare(arr.compare)
+}
+
+func (arr *Float64Collection) SetIndex(i int, val interface{}) ICollection {
+	if i < 0 || i >= arr.Count() {
+		return arr.SetErr(errors.New("index exceeded"))
+	}
+	arr.objs[i] = val.(float64)
+	return arr
 }
 
 func (arr *Float64Collection) Count() int {
@@ -88,8 +101,15 @@ func (arr *Float64Collection) Count() int {
 func (arr *Float64Collection) DD() {
 	ret := fmt.Sprintf("Float64Collection(%d):{\n", arr.Count())
 	for k, v := range arr.objs {
-		ret = ret + fmt.Sprintf("\t%d:\t%f\n",k, v)
+		ret = ret + fmt.Sprintf("\t%d:\t%f\n", k, v)
 	}
 	ret = ret + "}\n"
 	fmt.Print(ret)
+}
+
+func (arr *Float64Collection) ToJson() ([]byte, error) {
+	return json.Marshal(arr.objs)
+}
+func (arr *Float64Collection) FromJson(data []byte) error {
+	return json.Unmarshal(data, &(arr.objs))
 }

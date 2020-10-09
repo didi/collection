@@ -1,6 +1,6 @@
 package collection
 
-// ICollection表示数组结构，有几种类型
+// ICollection 表示数组结构，有几种类型
 type ICollection interface {
 	// ICollection错误信息，链式调用的时候需要检查下这个error是否存在，每次调用之后都检查一下
 	Err() error
@@ -8,8 +8,8 @@ type ICollection interface {
 	SetErr(error) ICollection
 
 	/*
-	下面的方法对所有Collection都生效
-	 */
+		下面的方法对所有Collection都生效
+	*/
 	// 复制一份当前相同类型的ICollection结构，但是数据是空的
 	NewEmpty(err ...error) ICollection
 	// 判断是否是空数组
@@ -38,6 +38,10 @@ type ICollection interface {
 	Slice(...int) ICollection
 	// 获取某个下标，对所有Collection生效
 	Index(i int) IMix
+	// 设置数组的下标为某个值
+	SetIndex(i int, val interface{}) ICollection
+	// 复制当前数组
+	Copy() ICollection
 	// 获取数组长度，对所有Collection生效
 	Count() int
 	// 将两个数组进行合并，参数的数据挂在当前数组中，返回当前数组，对所有Collection生效
@@ -53,10 +57,10 @@ type ICollection interface {
 	Every(func(item interface{}, key int) bool) bool
 	// 按照分页进行返回
 	ForPage(page int, perPage int) ICollection
-	// 获取第n位值组成数组
+	// 获取从索引offset开始为0，每n位值组成数组
 	Nth(n int, offset int) ICollection
-	// 组成的个数
-	Pad(start int, def interface{}) ICollection
+	// 将数组填充到count个数，只能数值型生效
+	Pad(count int, def interface{}) ICollection
 	// 从队列右侧弹出结构
 	Pop() IMix
 	// 推入元素
@@ -73,8 +77,8 @@ type ICollection interface {
 	DD()
 
 	/*
-	下面的方法对ObjCollection生效
-	 */
+		下面的方法对ObjCollection生效
+	*/
 	// 返回数组中对象的某个key组成的数组，仅对ObjectCollection生效, key为对象属性名称，必须为public的属性
 	Pluck(key string) ICollection
 	// 按照某个字段进行排序
@@ -82,13 +86,14 @@ type ICollection interface {
 	// 按照某个字段进行排序,倒序
 	SortByDesc(key string) ICollection
 
-
 	/*
-	下面的方法对基础Collection生效，但是ObjCollection一旦设置了Compare函数也生效
-	 */
+		下面的方法对基础Collection生效，但是ObjCollection一旦设置了Compare函数也生效
+	*/
 	// 比较a和b，如果a>b, 返回1，如果a<b, 返回-1，如果a=b, 返回0
 	// 设置比较函数，理论上所有Collection都能设置比较函数，但是强烈不建议基础Collection设置
 	SetCompare(func(a interface{}, b interface{}) int) ICollection
+	// GetCompare 获取比较函数
+	GetCompare() func(a interface{}, b interface{}) int
 	// 数组中最大的元素，仅对基础Collection生效, 可以传递一个比较函数
 	Max() IMix
 	// 数组中最小的元素，仅对基础Collection生效
@@ -105,8 +110,8 @@ type ICollection interface {
 	Join(split string, format ...func(item interface{}) string) string
 
 	/*
-	下面的方法对基础Collection生效
-	 */
+		下面的方法对基础Collection生效
+	*/
 	// 获取平均值
 	Avg() IMix
 	// 获取中位值
@@ -116,14 +121,15 @@ type ICollection interface {
 	// 获取sum值
 	Sum() IMix
 
-
 	/*
-	下面的方法对根据不同的对象，进行不同的调用转换
-	 */
+		下面的方法对根据不同的对象，进行不同的调用转换
+	*/
 	// 转化为golang原生的字符数组，仅对StrCollection生效
 	ToStrings() ([]string, error)
 	// 转化为golang原生的Int64数组，仅对Int64Collection生效
 	ToInt64s() ([]int64, error)
+	// 转化为golang原生的Int32数组，仅对Int32Collection生效
+	ToInt32s() ([]int32, error)
 	// 转化为golang原生的Int数组，仅对IntCollection生效
 	ToInts() ([]int, error)
 	// 转化为obj数组
@@ -132,4 +138,10 @@ type ICollection interface {
 	ToFloat64s() ([]float64, error)
 	// 转化为float32数组
 	ToFloat32s() ([]float32, error)
+	// 转化为interface{} 数组
+	ToInterfaces() ([]interface{}, error)
+
+	// 转换为Json
+	ToJson() ([]byte, error)
+	FromJson([]byte) error
 }
